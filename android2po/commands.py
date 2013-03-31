@@ -260,7 +260,7 @@ class InitCommand(Command):
             action = read_action
 
         # Read the XML, bail out if that fails
-        xmldata = read_xml(action, self.env.default.xml(kind))
+        xmldata = read_xml(action, self.env.default.xml(kind), product=self.env.config.product)
         if xmldata is False:
             return False, False
 
@@ -371,12 +371,12 @@ class InitCommand(Command):
                                    'warning')
                     continue
             else:
-                language_data = read_xml(action, language_xml, language=language)
+                language_data = read_xml(action, language_xml, language=language,  product=self.env.config.product)
                 if language_data == False:
                     # File was invalid
                     continue
 
-            template_data = read_xml(action, self.env.default.xml(kind))
+            template_data = read_xml(action, self.env.default.xml(kind), product=self.env.config.product)
             if template_data is False:
                 # File was invalid
                 continue

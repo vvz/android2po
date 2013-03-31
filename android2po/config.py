@@ -84,8 +84,16 @@ class Config(object):
                   '"gnu", or a custom path using the variables %%(locale)s '+
                   '%%(domain)s and optionally %%(group)s. E.g., '+
                   '"%%(group)s-%%(locale)s.po" will write to "strings-es.po" '+
-                  'for Spanish in strings.xml.',
+                  'for Spanish in strings.xml.',    
          'dest': 'layout',
+         'default': 'default',
+        },
+        {'name': 'product',
+         'help': 'allows convert xml files from android source tree, '+
+                  'with "product" attribute. Allows convert given product lists '+
+                  'or "default" if not specified'+
+                  '',
+         'dest': 'product',
          'default': 'default',
         },
     )

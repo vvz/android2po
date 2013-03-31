@@ -218,7 +218,6 @@ def get_element_text(tag, name, warnfunc=dummy_warn):
                             codepoint = unichr(int(codepoint_str, 16))
                         except ValueError:
                             raise UnsupportedResourceError('bad unicode escape sequence')
-
                         text[i-1 : max_slice] = codepoint
                         i -= 1
                     else:
@@ -327,7 +326,7 @@ def get_element_text(tag, name, warnfunc=dummy_warn):
     return value, formatted
 
 
-def read_xml(file, language=None, warnfunc=dummy_warn):
+def read_xml(file, language=None, warnfunc=dummy_warn , product='default'):
     """Load all resource names from an Android strings.xml resource file.
 
     The result is a ``ResourceTree`` instance.
@@ -353,7 +352,11 @@ def read_xml(file, language=None, warnfunc=dummy_warn):
         if tag.attrib.get('translatable') == 'false':
             comment = []
             continue
-
+        if 'product' in tag.attrib and product!=tag.attrib['product']:
+            warnfunc('skip string name %s,  product %s!=%s ' % (tag.attrib['name'], tag.attrib['product'] , product),
+                     'info')
+            comment = []
+            continue
         name = tag.attrib['name']
         if name in result:
             warnfunc('Duplicate resource id found: %s, ignoring.' % name,
@@ -814,7 +817,7 @@ def po2xml(catalog, with_untranslated=False, filter=None, warnfunc=dummy_warn):
                 warnfunc(('Duplicate index %s in array "%s"; ignoring '+
                           'the message. The catalog has possibly been '+
                           'corrupted.') % (index, name), 'error')
-            xml_tree[name][index] = value
+            xml_tree[name][index] = message.string
 
         # A plurals message
         elif isinstance(message.string, tuple):
@@ -864,12 +867,19 @@ def write_xml(tree, warnfunc=dummy_warn):
             # string-array - first, sort by index
             array_el = etree.Element('string-array')
             array_el.attrib['name'] = name
+            foundTranslation=False
             for i, v in enumerate(value):
+                if v:
+                    foundTranslation=True
                 item_el = write_to_dom(
                     'item', v, '"%s" index %d' % (name, i), namespaces_used,
                     warnfunc)
                 array_el.append(item_el)
-            root_tags.append(array_el)
+            if foundTranslation:
+                root_tags.append(array_el)
+            else:
+                warnfunc(('String-Array %s translation is empty. Skip ') % (name,), 'info')
+
         elif isinstance(value, Plurals):
             # plurals
             plural_el = etree.Element('plurals')
